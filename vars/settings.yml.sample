@@ -1,0 +1,6 @@
+---
+# Root of all Terraform project
+terraform_project_root_dir: /Users/Bob/Sites/terraform-projects-live-here
+
+# Path to executable binary (terraform, terragrunt or shell wrapper)
+terraform_bin: /Users/Bob/Sites/bin/terragrunt.sh

@@ -1,0 +1,47 @@
+---
+- hosts: localhost
+  gather_facts: False
+  vars:
+    terraform_projects: []
+    terraform_files: []
+  vars_files:
+    - ./vars/projects.yml
+  tasks:
+    - name: Find Terraform projects directories
+      find:
+        paths: "{{ terraform_project_root_dir }}"
+        file_type: "directory"
+      register: all_dirs
+    - set_fact:
+        terraform_projects: "{{ terraform_projects + [item.path] }}"
+      with_items: "{{ all_dirs.files }}"
+      when:
+        - item.path != terraform_project_root_dir + "/modules"
+    - debug:
+        var: terraform_projects
+        verbosity: 3
+
+    - name: Replace value in some terraform.tfvars files
+      lineinfile:
+        path: '{{ item + "/global/iam-account/terraform.tfvars" }}'
+        regexp: "(.*)source = "
+        line: '\1source = "git::git@github.com:terraform-aws-modules/terraform-aws-iam.git?ref=v0.0.1//modules/iam-account"'
+        backrefs: yes
+      with_items:
+        - "{{ terraform_projects }}"
+
+    - name: Run terragrunt apply in each project
+      shell: |
+        alias terragrunt={{ terraform_bin }}
+        terragrunt init
+
+        terragrunt import module.iam_account.aws_iam_account_alias.this this
+
+        terragrunt state mv aws_iam_account_alias.alias aws_iam_account_alias.this
+        terragrunt state mv aws_iam_account_password_policy.strict aws_iam_account_password_policy.this
+
+        terragrunt apply
+      args:
+        chdir: "{{ item }}/global/iam-account"
+      with_items:
+        - "{{ terraform_projects }}"
