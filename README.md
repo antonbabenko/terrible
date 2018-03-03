@@ -1,4 +1,6 @@
-# Terraform + Ansible = Terrible
+# Refactor Terraform configurations using Ansible
+
+<img src="https://raw.githubusercontent.com/antonbabenko/terrible/master/terrible.png" alt="Terrible - Refactor Terraform configurations using Ansible" align="right" />
 
 There is a need to orchestrate Terraform configuration files using powerful features of Ansible (such as search and replace, run terraform/terragrunt commands) and organize this as reusable playbooks.
 
